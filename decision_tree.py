@@ -1,1 +1,65 @@
-{"metadata":{"kernelspec":{"language":"python","display_name":"Python 3","name":"python3"},"language_info":{"name":"python","version":"3.11.13","mimetype":"text/x-python","codemirror_mode":{"name":"ipython","version":3},"pygments_lexer":"ipython3","nbconvert_exporter":"python","file_extension":".py"},"kaggle":{"accelerator":"none","dataSources":[{"sourceId":12762396,"sourceType":"datasetVersion","datasetId":8067890}],"dockerImageVersionId":31089,"isInternetEnabled":true,"language":"python","sourceType":"script","isGpuEnabled":false}},"nbformat_minor":4,"nbformat":4,"cells":[{"cell_type":"code","source":"# %% [code] {\"execution\":{\"iopub.status.busy\":\"2025-08-14T09:13:02.812485Z\",\"iopub.execute_input\":\"2025-08-14T09:13:02.812829Z\",\"iopub.status.idle\":\"2025-08-14T09:13:05.140376Z\",\"shell.execute_reply.started\":\"2025-08-14T09:13:02.812795Z\",\"shell.execute_reply\":\"2025-08-14T09:13:05.139206Z\"}}\n# This Python 3 environment comes with many helpful analytics libraries installed\n# It is defined by the kaggle/python Docker image: https://github.com/kaggle/docker-python\n# For example, here's several helpful packages to load\n\nimport numpy as np # linear algebra\nimport pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)\n\n# Input data files are available in the read-only \"../input/\" directory\n# For example, running this (by clicking run or pressing Shift+Enter) will list all files under the input directory\n\nimport os\nfor dirname, _, filenames in os.walk('/kaggle/input'):\n    for filename in filenames:\n        print(os.path.join(dirname, filename))\n\n# You can write up to 20GB to the current directory (/kaggle/working/) that gets preserved as output when you create a version using \"Save & Run All\" \n# You can also write temporary files to /kaggle/temp/, but they won't be saved outside of the current session\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2025-08-14T09:13:56.651229Z\",\"iopub.execute_input\":\"2025-08-14T09:13:56.651773Z\",\"iopub.status.idle\":\"2025-08-14T09:13:56.697421Z\",\"shell.execute_reply.started\":\"2025-08-14T09:13:56.651736Z\",\"shell.execute_reply\":\"2025-08-14T09:13:56.696349Z\"}}\nimport pandas as pd\ndf=pd.read_csv('/kaggle/input/titanic-decision-tree/titanic.csv')\ndf.head()\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2025-08-14T09:17:15.635441Z\",\"iopub.execute_input\":\"2025-08-14T09:17:15.636439Z\",\"iopub.status.idle\":\"2025-08-14T09:17:16.290141Z\",\"shell.execute_reply.started\":\"2025-08-14T09:17:15.636403Z\",\"shell.execute_reply\":\"2025-08-14T09:17:16.288863Z\"}}\nfrom sklearn.preprocessing import LabelEncoder\nlabeled=LabelEncoder()\ndf['Sex']=labeled.fit_transform(df['Sex'])\n\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2025-08-14T10:18:59.968744Z\",\"iopub.execute_input\":\"2025-08-14T10:18:59.969078Z\",\"iopub.status.idle\":\"2025-08-14T10:19:15.177287Z\",\"shell.execute_reply.started\":\"2025-08-14T10:18:59.969055Z\",\"shell.execute_reply\":\"2025-08-14T10:19:15.176270Z\"}}\nfrom sklearn.tree import DecisionTreeClassifier\nfrom sklearn.model_selection import cross_val_score\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.metrics import accuracy_score\ndf['Age']=df['Age'].fillna(df['Age'].median())\nx=df[['Pclass','Sex','Age','Fare']]\n\ny=df['Survived']\nx_train,x_test,y_train,y_test=train_test_split(x,y,test_size=0.2,random_state=42)\nmodel=DecisionTreeClassifier(max_depth=5,min_samples_split=10,random_state=42)\nmodel.fit(x_train,y_train)\npred=model.predict(x_test)\n\nprint(\"Accuracy:\", accuracy_score(y_test,pred))\nscore=cross_val_score(model,x,y,cv=5)\nprint('score:',score.mean())\nuser1=float(input('enter user pclas:'))\nuser2=input('enter user sex:')\nuser3=float(input('enter user age:'))\nuser4=float(input('enter user fare:'))\nuser2_enc=labeled.transform([user2])[0]\nuser_features=[[user1,user2_enc,user3,user4]]\nuser_features = pd.DataFrame([[user1, user2_enc, user3, user4]],\n                             columns=['Pclass','Sex','Age','Fare'])\nprint('Survived' if pred[0]==1 else 'Not Survived')\n\n\n# %% [code] {\"execution\":{\"iopub.status.busy\":\"2025-08-14T09:55:06.943256Z\",\"iopub.execute_input\":\"2025-08-14T09:55:06.944013Z\",\"iopub.status.idle\":\"2025-08-14T09:55:06.952834Z\",\"shell.execute_reply.started\":\"2025-08-14T09:55:06.943973Z\",\"shell.execute_reply\":\"2025-08-14T09:55:06.951812Z\"}}\ndf.isnull().sum()","metadata":{"_uuid":"95ad7e1a-6cb0-4a2d-8f52-eeabe72e95c5","_cell_guid":"fc917615-94ae-48f3-bd3b-517a1facc185","trusted":true,"collapsed":false,"jupyter":{"outputs_hidden":false}},"outputs":[],"execution_count":null}]}
+# Titanic Decision Tree Prediction - Clean Python Script
+
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.metrics import accuracy_score
+
+# Load dataset
+df = pd.read_csv('/kaggle/input/titanic-decision-tree/titanic.csv')
+
+# Encode 'Sex'
+labeled = LabelEncoder()
+df['Sex'] = labeled.fit_transform(df['Sex'])
+
+# Fill missing 'Age' with median
+df['Age'] = df['Age'].fillna(df['Age'].median())
+
+# Features and target
+X = df[['Pclass', 'Sex', 'Age', 'Fare']]
+y = df['Survived']
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Train Decision Tree
+model = DecisionTreeClassifier(max_depth=5, min_samples_split=10, random_state=42)
+model.fit(X_train, y_train)
+
+# Predictions on test set
+pred = model.predict(X_test)
+
+# Print accuracy
+print("Accuracy on test set:", accuracy_score(y_test, pred))
+
+# Cross-validation score
+cv_score = cross_val_score(model, X, y, cv=5)
+print("Cross-validation mean score:", cv_score.mean())
+
+# --- Interactive prediction ---
+try:
+    user_pclass = int(input("Enter Pclass (1/2/3): "))
+    user_sex = input("Enter Sex (male/female): ").strip().lower()
+    user_age = input("Enter Age (or leave blank for median): ").strip()
+    user_fare = float(input("Enter Fare: "))
+
+    # Handle missing age input
+    if user_age == "":
+        user_age = df['Age'].median()
+    else:
+        user_age = float(user_age)
+
+    # Encode sex
+    user_sex_enc = labeled.transform([user_sex])[0]
+
+    # Prepare input DataFrame
+    user_features = pd.DataFrame([[user_pclass, user_sex_enc, user_age, user_fare]],
+                                 columns=['Pclass', 'Sex', 'Age', 'Fare'])
+
+    # Predict
+    prediction = model.predict(user_features)
+    print("Predicted:", "Survived" if prediction[0] == 1 else "Not Survived")
+
+except Exception as e:
+    print("Error:", e)
